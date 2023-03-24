@@ -4,63 +4,49 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Blueprint/UserWidget.h"
 #include "MyActor.generated.h"
 
 UCLASS()
 class AIM_CAMP_API AMyActor : public AActor
 {
     GENERATED_BODY()
-    
+
 public:
-    // Sets default values for this actor's properties
     AMyActor();
 
-protected:
-    // Called when the game starts or when spawned
-    virtual void BeginPlay() override;
-
-public:
-    // Called every frame
-    virtual void Tick(float DeltaTime) override;
-
-    // Declare a UPROPERTY for a float property called "Speed"
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats_Score")
     float Speed;
 
-    // Declare a UPROPERTY for a float property called "Precision"
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats_Score")
     float Precision;
 
-    // Declare a UPROPERTY for a float property called "Accuracy"
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats_Score")
     float Accuracy;
 
-    // Declare a UPROPERTY for an integer property called "Hits"
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats_Score")
     int32 Hits;
-    
-    // Declare the functions used to calculate the score values
-    float CalculateSpeed();
-    float CalculateAccuracy();
-    float CalculatePrecision();
-    int32 CalculateHits();
 
-    // Declare the lerp speed variables used to smooth the score updates
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
-    float SpeedLerpSpeed;
+    UFUNCTION(BlueprintCallable, Category = "Stats_Score")
+    void UpdateSpeed(float DeltaTime);
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
-    float AccuracyLerpSpeed;
+    UFUNCTION(BlueprintCallable, Category = "Stats_Score")
+    void UpdatePrecision(bool Sphereshot);
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
-    float PrecisionLerpSpeed;
+    UFUNCTION(BlueprintCallable, Category = "Stats_Score")
+    void UpdateAccuracy(bool HitTarget);
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
-    float HitsLerpSpeed;
+    UFUNCTION(BlueprintCallable, Category = "Stats_Score")
+    void UpdateHits(int32 NewHits);
 
-    // Function to update the score values
-    UFUNCTION(BlueprintCallable, Category = "Score")
-    void UpdateScore(float DeltaTime);
-    
-    
+    UFUNCTION(BlueprintCallable, Category = "Stats_Score")
+    void UpdateStats_ScoreBlueprint();
+
+    float PlayerSpeed;
+
+private:
+    int32 Sphereshots;
+    int32 ShotsFired;
+
+    UUserWidget* Stats_ScoreWidget;
 };

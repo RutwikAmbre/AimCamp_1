@@ -1,12 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "MyActor.h"
-
-#include "Kismet/KismetMathLibrary.h" // Required for FMath::Lerp function
+#include "Blueprint/UserWidget.h"
+#include "Components/TextBlock.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/HUD.h"
+#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMyActor::AMyActor()
+    : PlayerSpeed(100.0f)
 {
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
@@ -16,123 +20,82 @@ AMyActor::AMyActor()
     Precision = 0.0f;
     Accuracy = 0.0f;
     Hits = 0;
-
-    // Set default values for lerp speed properties
-    SpeedLerpSpeed = 0.5f;
-    PrecisionLerpSpeed = 0.5f;
-    AccuracyLerpSpeed = 0.5f;
-    HitsLerpSpeed = 0.5f;
+    Sphereshots = 0;
+    ShotsFired = 0;
 }
 
 // Called when the game starts or when spawned
 void AMyActor::BeginPlay()
 {
     Super::BeginPlay();
+    // Get a reference to the stats blueprint
+    Stats_ScoreWidget = Cast<UUserWidget>(GetWorld()->GetFirstPlayerController()->GetHUD()->GetWidgetFromName(TEXT("Stats_Score")));
 }
 
 // Called every frame
 void AMyActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    // Update the score values
-    UpdateScore(DeltaTime);
 }
 
-float AMyActor::CalculateSpeed()
+void AMyActor::UpdateSpeed(float DeltaTime)
 {
-    // Calculate the total time and total distance traveled here
-    float TotalTime = 0.0f;
-    float TotalDistance = 0.0f;
-
-    // Replace these values with your actual calculation
-    TotalTime = 10.0f;
-    TotalDistance = 100.0f;
-
-    float Speed = TotalDistance / TotalTime;
-    return Speed;
+    // Calculate speed score based on player's movement speed and time elapsed
+    // Assuming PlayerSpeed is a float variable that needs to be defined somewhere
+    Speed = PlayerSpeed * DeltaTime;
 }
 
-float AMyActor::CalculateAccuracy()
+void AMyActor::UpdatePrecision(bool Sphereshot)
 {
-    // Calculate the total number of shots fired and total number of hits here
-    int32 TotalShots = 0;
-    int32 TotalHits = 0;
-
-    // Replace these values with your actual calculation
-    TotalShots = 100;
-    TotalHits = 80;
-
-    if (TotalShots == 0)
+    // Calculate precision score based on number of sphereshots divided by number of hits
+    if (Sphereshot)
     {
-        return 0.0f;
+        Sphereshots++;
     }
-
-    float Accuracy = static_cast<float>(TotalHits) / static_cast<float>(TotalShots);
-    return Accuracy;
+    Precision = Hits > 0 ? (float)Sphereshots / (float)Hits : 0.0f;
 }
 
-float AMyActor::CalculatePrecision()
+void AMyActor::UpdateAccuracy(bool HitTarget)
 {
-    // Calculate the total distance from targets and total number of hits here
-    float TotalDistanceFromTargets = 0.0f;
-    int32 TotalHits = 0;
-    
-    // Iterate through all targets and calculate distance from each hit target
-    for (auto Target : Targets)
+    // Calculate accuracy score based on number of hits divided by number of shots fired
+    ShotsFired++;
+    if (HitTarget)
     {
-        if (Target->bIsHit)
-        {
-            TotalHits++;
-            TotalDistanceFromTargets += FVector::Dist(Target->GetActorLocation(), GetActorLocation());
-        }
+        Hits++;
     }
-    
-    if (TotalHits == 0)
-    {
-        return 0.0f;
-    }
-    
-    float Precision = TotalDistanceFromTargets / static_cast<float>(TotalHits);
-    return Precision;
+    Accuracy = ShotsFired > 0 ? (float)Hits / (float)ShotsFired : 0.0f;
 }
 
-void AMyActor::UpdateScore(float DeltaTime)
+void AMyActor::UpdateHits(int32 NewHits)
 {
-// Calculate new score values using lerping
-    Speed = FMath::Lerp(Speed, CalculateSpeed(), SpeedLerpSpeed * DeltaTime);
-    Precision = FMath::Lerp(Precision, CalculatePrecision(), PrecisionLerpSpeed * DeltaTime);
-    Accuracy = FMath::Lerp(Accuracy, CalculateAccuracy(), AccuracyLerpSpeed * DeltaTime);
-    Hits = FMath::Lerp(Hits, static_cast<float>(Hits), HitsLerpSpeed * DeltaTime);
+    // Increment the number of hits
+    Hits += NewHits;
 }
 
-void AMyActor::UpdateStatsBlueprint()
+void AMyActor::UpdateStats_ScoreBlueprint()
 {
-    // Get a reference to the stats blueprint
-    UUserWidget* StatsWidget = Cast<UUserWidget>(GetWorld()->GetFirstPlayerController()->GetHUD()->GetWidgetFromName(TEXT("Stats_Score")));
-
-    if (StatsWidget)
+    if (Stats_ScoreWidget)
     {
         // Update the score values in the stats blueprint
-        UTextBlock* SpeedTextBlock = Cast<UTextBlock>(StatsWidget->GetWidgetFromName(TEXT("SpeedTextBlock")));
+        UTextBlock* SpeedTextBlock = Cast<UTextBlock>(Stats_ScoreWidget->GetWidgetFromName(TEXT("SpeedTextBlock")));
         if (SpeedTextBlock)
         {
             SpeedTextBlock->SetText(FText::AsNumber(Speed));
         }
 
-        UTextBlock* PrecisionTextBlock = Cast<UTextBlock>(StatsWidget->GetWidgetFromName(TEXT("PrecisionTextBlock")));
+        UTextBlock* PrecisionTextBlock = Cast<UTextBlock>(Stats_ScoreWidget->GetWidgetFromName(TEXT("PrecisionTextBlock")));
         if (PrecisionTextBlock)
         {
             PrecisionTextBlock->SetText(FText::AsNumber(Precision));
         }
 
-        UTextBlock* AccuracyTextBlock = Cast<UTextBlock>(StatsWidget->GetWidgetFromName(TEXT("AccuracyTextBlock")));
+        UTextBlock* AccuracyTextBlock = Cast<UTextBlock>(Stats_ScoreWidget->GetWidgetFromName(TEXT("AccuracyTextBlock")));
         if (AccuracyTextBlock)
         {
             AccuracyTextBlock->SetText(FText::AsNumber(Accuracy));
         }
 
-        UTextBlock* HitsTextBlock = Cast<UTextBlock>(StatsWidget->GetWidgetFromName(TEXT("HitsTextBlock")));
+        UTextBlock* HitsTextBlock = Cast<UTextBlock>(Stats_ScoreWidget->GetWidgetFromName(TEXT("HitsTextBlock")));
         if (HitsTextBlock)
         {
             HitsTextBlock->SetText(FText::AsNumber(Hits));
