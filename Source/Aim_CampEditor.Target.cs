@@ -11,5 +11,7 @@ public class Aim_CampEditorTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 
 		ExtraModuleNames.AddRange( new string[] { "Aim_Camp" } );
+
+		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_1;
 	}
 }
