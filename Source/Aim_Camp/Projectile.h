@@ -37,4 +37,10 @@ public:
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 			const FHitResult& Hit);
 
+	UPROPERTY(EditAnywhere)
+		int score = 1;
+
+	UPROPERTY(EditAnywhere)
+		int totalScore = 0;
+
 };
