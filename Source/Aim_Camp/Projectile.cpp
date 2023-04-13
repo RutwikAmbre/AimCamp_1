@@ -4,7 +4,6 @@
 #include "Projectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
-#include <Blueprint/UserWidget.h>
 
 
 // Sets default values
